@@ -64,17 +64,25 @@ d3.json("graph.json", function(error, graph) {
   var nodeDegrees = {};
 
   graph.links.forEach(function(d) {
-      linkedByIndex[d.source.index + "," + d.target.index] = 1;
-      if(d.source.index in nodeDegrees) {
-        let val = nodeDegrees[d.source.index];
-        nodeDegrees[d.source.index] = (val + 1);
-      } else {
-        nodeDegrees[d.source.index] = 1;
-      }
+    if(d.source.index in linkedByIndex) {
+      linkedByIndex[d.source.index][d.target.index] = 1;
+    } else {
+      let val = {};
+      val[d.target.index] = 1;
+      linkedByIndex[d.source.index] =  val;
+    }
+
+    if(d.source.index in nodeDegrees) {
+      let val = nodeDegrees[d.source.index];
+      nodeDegrees[d.source.index] = (val + 1);
+    } else {
+      nodeDegrees[d.source.index] = 1;
+    }
   });
 
   function isConnected(a, b) {
-    return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
+    console.log(a.index);
+    return linkedByIndex[a.index][b.index] || linkedByIndex[b.index][a.index] || a.index == b.index;
   }
 
   function scaledSize(d) {
