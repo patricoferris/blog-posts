@@ -21,28 +21,17 @@ d3.json("graph.json", function(error, graph) {
     .selectAll("line")
     .data(graph.links)
     .enter().append("line")
-      .attr("stroke-width", function(d) { console.log(d); return Math.sqrt(d.value); });
+      .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
 
   var node = svg.append("g")
     .attr("class", "nodes")
     .selectAll("circle")
     .data(graph.nodes)
     .enter().append("circle")
-    .attr("r", 5)
-    .attr("fill", function(d) { return color(d.group); })
-    .on("mouseover", mouseOver(.7)/*function(d) {
-      div.transition()
-          .duration(200)
-          .style("opacity", .9);
-      div.html(d.id)
-          .style("left", (d3.event.pageX) + "px")
-          .style("top", (d3.event.pageY - 28) + "px");
-    }*/)
-    .on("mouseout", mouseOut/*function(d) {
-        div.transition()
-            .duration(500)
-            .style("opacity", 0);
-    }*/)
+    .attr("r", scaledSize)
+    .attr("fill", function(d) { return color(d.degree); })
+    .on("mouseover", mouseOver(.7))
+    .on("mouseout", mouseOut)
     .call(d3.drag()
         .on("start", dragstarted)
         .on("drag", dragged)
@@ -55,8 +44,8 @@ d3.json("graph.json", function(error, graph) {
   simulation.force("link")
       .links(graph.links);
 
-  svg.selectAll("circle").on("click", function(){
-    d3.select("p").text(d3.select(this)._groups[0][0].firstChild.innerHTML)
+  svg.selectAll("circle").on("click", function(d){
+    console.log(linkedByIndex);
   });
 
   function ticked() {
@@ -72,43 +61,66 @@ d3.json("graph.json", function(error, graph) {
   }
 
   var linkedByIndex = {};
-    graph.links.forEach(function(d) {
-        linkedByIndex[d.source.index + "," + d.target.index] = 1;
-    });
+  var nodeDegrees = {};
+
+  graph.links.forEach(function(d) {
+      linkedByIndex[d.source.index + "," + d.target.index] = 1;
+      if(d.source.index in nodeDegrees) {
+        let val = nodeDegrees[d.source.index];
+        nodeDegrees[d.source.index] = (val + 1);
+      } else {
+        nodeDegrees[d.source.index] = 1;
+      }
+  });
 
   function isConnected(a, b) {
     return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
   }
 
-  function mouseOver(opacity) {
-          return function(d) {
-              // check all other nodes to see if they're connected
-              // to this one. if so, keep the opacity at 1, otherwise
-              // fade
-              node.style("stroke-opacity", function(o) {
-                  thisOpacity = isConnected(d, o) ? 1 : opacity;
-                  return thisOpacity;
-              });
-              node.style("fill-opacity", function(o) {
-                  thisOpacity = isConnected(d, o) ? 1 : opacity;
-                  return thisOpacity;
-              });
-              // also style link accordingly
-              link.style("stroke-opacity", function(o) {
-                  return o.source === d || o.target === d ? 1 : opacity;
-              });
-              link.style("stroke", function(o){
-                  return o.source === d || o.target === d ? o.source.colour : "#ddd";
-              });
-          };
-      }
+  function scaledSize(d) {
+    return d.degree * 0.5;
+  }
 
-      function mouseOut() {
-          node.style("stroke-opacity", 1);
-          node.style("fill-opacity", 1);
-          link.style("stroke-opacity", 1);
-          link.style("stroke", "#ddd");
-      }
+  function mouseOver(opacity) {
+    return function(d) {
+        // check all other nodes to see if they're connected
+        // to this one. if so, keep the opacity at 1, otherwise
+        // fade
+        div.transition()
+            .duration(200)
+            .style("opacity", .9);
+        div.html(d.id)
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+
+        node.style("stroke-opacity", function(o) {
+            thisOpacity = isConnected(d, o) ? 1 : opacity;
+            return thisOpacity;
+        });
+
+        node.style("fill-opacity", function(o) {
+            thisOpacity = isConnected(d, o) ? 1 : opacity;
+            return thisOpacity;
+        });
+        // also style link accordingly
+        link.style("stroke-opacity", function(o) {
+            return o.source === d || o.target === d ? 1 : opacity;
+        });
+        link.style("stroke", function(o){
+            return o.source === d || o.target === d ? o.source.colour : "#ddd";
+        });
+    };
+}
+
+function mouseOut() {
+    div.transition()
+        .duration(500)
+        .style("opacity", 0);
+    node.style("stroke-opacity", 1);
+    node.style("fill-opacity", 1);
+    link.style("stroke-opacity", 1);
+    link.style("stroke", "#ddd");
+}
 
 
 
