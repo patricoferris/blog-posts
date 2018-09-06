@@ -45,7 +45,20 @@ d3.json("graph.json", function(error, graph) {
       .links(graph.links);
 
   svg.selectAll("circle").on("click", function(d){
-    console.log(linkedByIndex);
+    let name = "Country: " + d.name.toUpperCase();
+    let string = "Exporters: ";
+    Object.keys(linkedByIndex[d.index]).forEach(key => {
+      for(n of graph.nodes) {
+        if(n.index == key) {
+          string += (n.name.toUpperCase() + ", ");
+        }
+      }
+    });
+
+    let country = document.getElementById("country");
+    country.innerHTML = name;
+    let exporters = document.getElementById("exporters");
+    exporters.innerHTML = string;
   });
 
   function ticked() {
@@ -81,8 +94,10 @@ d3.json("graph.json", function(error, graph) {
   });
 
   function isConnected(a, b) {
-    console.log(a.index);
-    return linkedByIndex[a.index][b.index] || linkedByIndex[b.index][a.index] || a.index == b.index;
+    if (linkedByIndex[a.index][b.index] == 1) {
+      return 1;
+    }
+    //return linkedByIndex[a.index][b.index] || linkedByIndex[b.index][a.index] || a.index == b.index;
   }
 
   function scaledSize(d) {
@@ -112,10 +127,11 @@ d3.json("graph.json", function(error, graph) {
         });
         // also style link accordingly
         link.style("stroke-opacity", function(o) {
-            return o.source === d || o.target === d ? 1 : opacity;
+            return o.source === d ? 1 : opacity;
         });
+
         link.style("stroke", function(o){
-            return o.source === d || o.target === d ? o.source.colour : "#ddd";
+            return o.source === d ? "rgb(255, 0, 0)" : "#ddd";
         });
     };
 }
@@ -128,6 +144,7 @@ function mouseOut() {
     node.style("fill-opacity", 1);
     link.style("stroke-opacity", 1);
     link.style("stroke", "#ddd");
+    link.style("stroke-width", 1);
 }
 
 
