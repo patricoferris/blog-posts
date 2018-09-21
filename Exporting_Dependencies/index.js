@@ -47,6 +47,7 @@ d3.json("graph.json", function(error, graph) {
   svg.selectAll("circle").on("click", function(d){
     let name = "Country: " + d.name.toUpperCase();
     let string = "Exporters: ";
+
     Object.keys(linkedByIndex[d.index]).forEach(key => {
       for(n of graph.nodes) {
         if(n.index == key && n.name != undefined) {
@@ -57,7 +58,7 @@ d3.json("graph.json", function(error, graph) {
 
     let country = document.getElementById("country");
     country.innerHTML = name;
-    
+
     let exporters = document.getElementById("exporters");
     exporters.innerHTML = string;
   });
